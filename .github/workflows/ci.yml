@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-research-with-eval-gate
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 01-research-with-eval-gate/go.mod
+
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)"
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+      - name: Run example
+        run: |
+          output="$(go run ./main.go)"
+          printf '%s\n' "$output"
+          printf '%s\n' "$output" | grep '^PASS:'
+          printf '%s\n' "$output" | grep '^ESCALATE:'
